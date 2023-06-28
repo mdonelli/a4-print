@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<style>
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    @media print {
+
+        html,
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        :root {
+            --page-margin: 0px !important;
+            --page-border: 0px !important;
+            --page-background: none !important;
+        }
+
+        .page-overlay {
+            display: none !important;
+        }
+    }
+
+    :root {
+        --body-background: white;
+        --body-bottom: 120px;
+        --page-width: 210mm;
+        --page-height: 297mm;
+        --page-padding: 20px;
+        --page-margin: 30px;
+        --page-border: 1px;
+        --page-background: lightgray;
+        --text-size: 14px;
+        --card-width: 79mm;
+        --card-height: 120mm;
+    }
+
+    .content-wrapper {
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+        display: inline-block;
+    }
+
+    .page-content {
+        position: relative;
+        box-sizing: border-box;
+        width: var(--page-width);
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: var(--page-padding);
+        gap: var(--page-padding);
+        background-color: transparent;
+        z-index: 10;
+        padding-bottom: var(--body-bottom);
+    }
+
+    .page-overlay {
+        position: absolute;
+        top: calc(0px - var(--page-border));
+        left: calc(0px - var(--page-border));
+        display: flex;
+        flex-direction: column;
+        background-color: transparent;
+        z-index: 5;
+        padding-bottom: var(--body-bottom);
+    }
+
+    .page {
+        width: var(--page-width);
+        height: var(--page-height);
+        border: 1px #D3D3D3 solid;
+        box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+        background-color: var(--page-background);
+        z-index: 10;
+    }
+
+    .page-gap {
+        width: 100%;
+        height: calc(var(--page-margin) - 2 * var(--page-border));
+        background-color: var(--body-background);
+        z-index: 5;
+    }
+
+    .double {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .contet-resize-detector {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        visibility: hidden;
+    }
+
+    .card {
+        width: var(--card-width);
+        height: var(--card-height);
+        background-color: orange;
+
+    }
+
+    .page-content>div {
+        margin-top: calc(var(--push) + var(--page-padding) + var(--page-margin) - 2 * var(--page-border));
+    }
+</style>
+
+<body>
+    <div class="content-wrapper">
+        <div class="page-overlay">
+            <div class="page"></div>
+        </div>
+        <div class="page-content">
+            <div class="double">
+                <div class="card"></div>
+                <div class="card"></div>
+            </div>
+            <div class="double">
+                <div class="card"></div>
+                <div class="card"></div>
+            </div>
+            <div class="double">
+                <div class="card"></div>
+                <div class="card"></div>
+            </div>
+            <div class="double">
+                <div class="card"></div>
+                <div class="card"></div>
+            </div>
+            <div class="double">
+                <div class="card"></div>
+                <div class="card"></div>
+            </div>
+            <div class="double">
+                <div class="card"></div>
+                <div class="card"></div>
+            </div>
+            <div class="double">
+                <div class="card"></div>
+                <div class="card"></div>
+            </div>
+            <div class="double">
+                <div class="card"></div>
+                <div class="card"></div>
+            </div>
+            <div class="double">
+                <div class="card"></div>
+                <div class="card"></div>
+            </div>
+            <div class="double">
+                <div class="card"></div>
+                <div class="card"></div>
+            </div>
+        </div>
+
+        <iframe class="contet-resize-detector"></iframe>
+    </div>
+
+    <script>
+        (function () {
+            const resizeDetector = document.querySelector(".contet-resize-detector");
+            const pageContent = document.querySelector(".page-content");
+            const pageOverlay = document.querySelector(".page-overlay");
+            const pageOverlayWrapper = document.querySelector(".page-overlay-wrapper");
+
+            let resizing = false;
+
+            function initResizeListener() {
+                resizeDetector.contetWindow.addEventListener("resize", function () {
+                    resizeDetector.dispatchEvent(new Event("resize"));
+                })
+            };
+
+            function resizeHandler() {
+                if (resizing) {
+                    return;
+                }
+                resizing = true;
+                resizeOverlay();
+                detectOverlaps();
+                resizing = false;
+            }
+
+            function resizeOverlay() {
+                const rootStyles = getComputedStyle(document.querySelector(":root"))
+                const pageHeight = parseInt(rootStyles.getPropertyValue("--page-height")) / 0.26;
+                const pageMargin = parseInt(rootStyles.getPropertyValue("--page-margin"));
+                const pageBorder = parseInt(rootStyles.getPropertyValue("--page-border"));
+
+                while (pageContent.offsetHeight > pageOverlay.offsetHeight) {
+                    let gap = document.createElement("div");
+                    gap.className = "page-gap";
+                    pageOverlay.appendChild(gap);
+                    let page = document.createElement("div");
+                    page.className = "page";
+                    pageOverlay.appendChild(page);
+                }
+                while ((pageOverlay.offsetHeight - pageHeight - pageMargin + 2 * pageBorder) > pageContent.offsetHeight) {
+                    document.querySelector(".page:last-child").remove();
+                    document.querySelector(".page-gap:last-child").remove();
+                }
+            }
+
+            function detectOverlaps() {
+                const rootStyles = getComputedStyle(document.querySelector(":root"))
+                const pageBorder = parseInt(rootStyles.getPropertyValue("--page-border"));
+                const pagePadding = parseInt(rootStyles.getPropertyValue("--page-padding"));
+
+                document.querySelectorAll(".page-content>div").forEach(function (card) {
+                    card.style.setProperty("--push", "");
+                    resizeOverlay();
+                    const top = card.offsetTop;
+                    const bottom = top + card.offsetHeight;
+                    for (let gap of document.querySelectorAll(".page-gap")) {
+                        let gapTop = gap.offsetTop - pageBorder;
+                        let gapBottom = gapTop + gap.offsetHeight + pageBorder;
+                        if (top <= gapBottom && bottom >= gapTop) {
+                            ("overlap detected!")
+                            card.style.setProperty("--push", gapTop - top + "px");
+                            resizeOverlay();
+                            break;
+                        }
+                    }
+                });
+            }
+
+            resizeHandler();
+
+            resizeDetector.addEventListener("resize", resizeHandler);
+
+            if (resizeDetector.contendDocument && resizeDetector.contendDocument.readyState == "complete") {
+                initResizeListener();
+            } else {
+                resizeDetector.addEventListener("load", initResizeListener);
+            }
+        })();
+    </script>
+</body>
